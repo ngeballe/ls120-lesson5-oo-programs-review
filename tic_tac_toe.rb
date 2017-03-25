@@ -206,14 +206,24 @@ class TTTGame
   end
 
   def computer_moves
-    immediate_threats = board.lines_where_marker_can_win(human.marker)
-    if immediate_threats.any?
+    if opportunities_to_win.any?
+      opportunity = opportunities_to_win.sample
+      square = board.unmarked_key_on_line(opportunity)
+    elsif immediate_threats.any?
       threat = immediate_threats.sample
       square = board.unmarked_key_on_line(threat)
     else
       square = board.unmarked_keys.sample
     end
     board[square] = computer.marker
+  end
+
+  def immediate_threats
+    board.lines_where_marker_can_win(human.marker)
+  end
+
+  def opportunities_to_win
+    board.lines_where_marker_can_win(computer.marker)
   end
 
   def current_player_moves
