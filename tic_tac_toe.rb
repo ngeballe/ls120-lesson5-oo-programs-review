@@ -137,10 +137,7 @@ class TTTGame
   end
 
   def play
-    clear
-    display_welcome_message
-    human_chooses_marker if LET_HUMAN_CHOOSE_MARKER
-    set_player_names
+    setup
 
     loop do
       loop do
@@ -153,7 +150,6 @@ class TTTGame
       display_game_result
       break unless play_again?
       reset
-      reset_scores
       display_play_again_message
     end
 
@@ -161,6 +157,13 @@ class TTTGame
   end
 
   private
+
+  def setup
+    clear
+    display_welcome_message
+    human_chooses_marker if LET_HUMAN_CHOOSE_MARKER
+    set_player_names
+  end
 
   def play_round
     display_board
@@ -194,7 +197,8 @@ class TTTGame
   end
 
   def display_board
-    puts "#{human.name} is a #{human.marker}. #{computer} is a #{computer.marker}."
+    puts "#{human.name} is a #{human.marker}. " \
+      + "#{computer} is a #{computer.marker}."
     puts
     board.draw
     puts
@@ -213,27 +217,38 @@ class TTTGame
   end
 
   def computer_moves
-    if opportunities_to_win.any?
-      opportunity = opportunities_to_win.sample
-      square = board.unmarked_key_on_line(opportunity)
-    elsif immediate_threats.any?
-      threat = immediate_threats.sample
-      square = board.unmarked_key_on_line(threat)
-    elsif board.unmarked_keys.include?(5)
-      square = 5
+    board[best_compute_square] = computer.marker
+  end
+
+  def best_computer_square
+    return computers_defensive_move if computers_defensive_move
+    return computers_winning_move if computers_winning_move
+    if board.unmarked_keys.include?(5)
+      5
     else
-      square = board.unmarked_keys.sample
+      board.unmarked_keys.sample
     end
-    board[square] = computer.marker
   end
 
-  def immediate_threats
-    board.lines_where_marker_can_win(human.marker)
+  def computers_defensive_move
+    immediate_threats = board.lines_where_marker_can_win(human.marker)
+    board.unmarked_key_on_line(immediate_threats.sample) \
+      if immediate_threats.any?
   end
 
-  def opportunities_to_win
-    board.lines_where_marker_can_win(computer.marker)
+  def computers_winning_move
+    opportunities_to_win = board.lines_where_marker_can_win(computer.marker)
+    board.unmarked_key_on_line(opportunities_to_win.sample) \
+      if opportunities_to_win.any?
   end
+
+  # def immediate_threats
+  #   board.lines_where_marker_can_win(human.marker)
+  # end
+
+  # def opportunities_to_win
+  #   board.lines_where_marker_can_win(computer.marker)
+  # end
 
   def current_player_moves
     if human_turn?
@@ -285,6 +300,7 @@ class TTTGame
 
   def reset
     board.reset
+    reset_scores
     @current_marker = FIRST_TO_MOVE
     clear
   end
