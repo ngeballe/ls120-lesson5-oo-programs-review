@@ -56,6 +56,18 @@ class Board
   end
   # rubocop:enable Metrics/AbcSize
 
+  def lines_where_marker_can_win(marker)
+    WINNING_LINES.select do |line|
+      squares = @squares.values_at(*line)
+      markers = squares.collect(&:marker)
+      markers.count(marker) == 2 && squares.count(&:unmarked?) == 1
+    end
+  end
+
+  def unmarked_key_on_line(line_keys)
+    line_keys.detect { |key| @squares[key].unmarked? }
+  end
+
   private
 
   def three_identical_markers?(squares)
@@ -194,7 +206,14 @@ class TTTGame
   end
 
   def computer_moves
-    board[board.unmarked_keys.sample] = computer.marker
+    immediate_threats = board.lines_where_marker_can_win(human.marker)
+    if immediate_threats.any?
+      threat = immediate_threats.sample
+      square = board.unmarked_key_on_line(threat)
+    else
+      square = board.unmarked_keys.sample
+    end
+    board[square] = computer.marker
   end
 
   def current_player_moves
