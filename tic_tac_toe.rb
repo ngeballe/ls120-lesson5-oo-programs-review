@@ -212,6 +212,8 @@ class TTTGame
     elsif immediate_threats.any?
       threat = immediate_threats.sample
       square = board.unmarked_key_on_line(threat)
+    elsif board.unmarked_keys.include?(5)
+      square = 5
     else
       square = board.unmarked_keys.sample
     end
