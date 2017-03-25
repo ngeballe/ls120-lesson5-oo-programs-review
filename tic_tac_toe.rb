@@ -120,7 +120,8 @@ end
 class TTTGame
   HUMAN_MARKER = 'X'
   COMPUTER_MARKER = 'O'
-  FIRST_TO_MOVE = HUMAN_MARKER
+  # FIRST_TO_MOVE = HUMAN_MARKER
+  FIRST_TO_MOVE = 'choose'
   WINNING_SCORE = 5
 
   attr_reader :board, :human, :computer
@@ -129,7 +130,6 @@ class TTTGame
     @board = Board.new
     @human = Player.new(HUMAN_MARKER)
     @computer = Player.new(COMPUTER_MARKER)
-    @current_marker = FIRST_TO_MOVE
   end
 
   def play
@@ -138,6 +138,7 @@ class TTTGame
 
     loop do
       loop do
+        set_first_mover
         play_round
         break if someone_won_game?
         prompt_to_continue
@@ -336,6 +337,25 @@ class TTTGame
   def reset_scores
     human.score = 0
     computer.score = 0
+  end
+
+  def set_first_mover
+    if FIRST_TO_MOVE == 'choose'
+      @current_marker = human_wants_first_move? ? HUMAN_MARKER : COMPUTER_MARKER
+    else
+      @current_marker = FIRST_TO_MOVE
+    end
+  end
+
+  def human_wants_first_move?
+    answer = 'y'
+    loop do
+      puts 'Do you want to move first? (y/n)'
+      answer = gets.chomp.downcase
+      break if %w[y n].include?(answer)
+      puts "Sorry, you must choose 'y' or 'n'."
+    end
+    answer == 'y'
   end
 end
 
