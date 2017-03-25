@@ -38,6 +38,7 @@ class Board
     (1..9).each { |key| @squares[key] = Square.new }
   end
 
+  # rubocop:disable Metrics/AbcSize
   def draw
     puts "     |     |"
     puts "  #{@squares[1]}  |  #{@squares[2]}  |  #{@squares[3]}"
@@ -51,6 +52,7 @@ class Board
     puts "  #{@squares[7]}  |  #{@squares[8]}  |  #{@squares[9]}"
     puts "     |     |"
   end
+  # rubocop:enable Metrics/AbcSize
 
   private
 
@@ -94,8 +96,8 @@ end
 class TTTGame
   HUMAN_MARKER = 'X'
   COMPUTER_MARKER = 'O'
-  FIRST_TO_MOVE = COMPUTER_MARKER
-  
+  FIRST_TO_MOVE = HUMAN_MARKER
+
   attr_reader :board, :human, :computer
 
   def initialize
@@ -151,11 +153,11 @@ class TTTGame
     puts "You're a #{human.marker}. Computer is a #{computer.marker}."
     puts
     board.draw
-    puts    
+    puts
   end
 
   def human_moves
-    puts "Choose a square (#{board.unmarked_keys.join(', ')}):"
+    puts "Choose a square (#{joinor(board.unmarked_keys)}):"
     square = nil
     loop do
       square = gets.chomp.to_i
@@ -198,7 +200,7 @@ class TTTGame
     loop do
       puts 'Would you like to play again? (y/n)'
       answer = gets.chomp.downcase
-      break if %w(y n).include? answer
+      break if %w[y n].include? answer
       puts "Sorry, you must choose 'y' or 'n'."
     end
 
@@ -218,6 +220,17 @@ class TTTGame
   def display_play_again_message
     puts "Let's play again!"
     puts
+  end
+
+  def joinor(array, delimiter=', ', conjunction='or')
+    case array.size
+    when 0 then ''
+    when 1..2 then array.join(" #{conjunction} ")
+    else
+      array_copy = array.dup
+      array_copy[-1] = "#{conjunction} #{array[-1]}"
+      array_copy.join(delimiter)
+    end
   end
 end
 
