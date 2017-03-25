@@ -1,3 +1,5 @@
+require 'pry'
+
 class Board
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9], # rows
                    [1, 4, 7], [2, 5, 8], [3, 6, 9], # cols
@@ -87,9 +89,19 @@ end
 
 class Player
   attr_reader :marker
+  attr_accessor :score
 
   def initialize(marker)
     @marker = marker
+    @score = 0
+  end
+
+  def score_string
+    if score == 1
+      "1 point"
+    else
+      "#{score} points"
+    end
   end
 end
 
@@ -97,6 +109,7 @@ class TTTGame
   HUMAN_MARKER = 'X'
   COMPUTER_MARKER = 'O'
   FIRST_TO_MOVE = HUMAN_MARKER
+  WINNING_SCORE = 5
 
   attr_reader :board, :human, :computer
 
@@ -112,17 +125,25 @@ class TTTGame
     display_welcome_message
 
     loop do
-      display_board
-
       loop do
-        current_player_moves
-        break if board.someone_won? || board.full?
-        clear_screen_and_display_board if human_turn?
-      end
+        display_board
+        loop do
+          current_player_moves
+          break if board.someone_won? || board.full?
+          clear_screen_and_display_board if human_turn?
+        end
 
-      display_result
+        display_result
+        update_scores
+        display_scores
+        break if someone_won_game?
+        prompt_to_continue
+        reset
+      end
+      display_game_result
       break unless play_again?
       reset
+      reset_scores
       display_play_again_message
     end
 
@@ -182,13 +203,22 @@ class TTTGame
     end
   end
 
+  def round_winner
+    case board.winning_marker
+    when human.marker
+      human
+    when computer.marker
+      computer
+    end
+  end
+
   def display_result
     clear_screen_and_display_board
 
-    case board.winning_marker
-    when human.marker
+    case round_winner
+    when human
       puts "You won!"
-    when computer.marker
+    when computer
       puts "The computer won!"
     else
       puts "It's a tie!"
@@ -231,6 +261,45 @@ class TTTGame
       array_copy[-1] = "#{conjunction} #{array[-1]}"
       array_copy.join(delimiter)
     end
+  end
+
+  def update_scores
+    round_winner.score += 1 if round_winner
+  end
+
+  def display_scores
+    puts "You have #{human.score_string}. The computer has #{computer.score_string}."
+  end
+
+  def someone_won_game?
+    !!game_winner
+  end
+
+  def game_winner
+    if human.score >= 5
+      human
+    elsif computer.score >= 5
+      computer
+    end
+  end
+
+  def display_game_result
+    case game_winner
+    when human
+      puts "You won the game!"
+    when computer
+      puts "The computer won the game!"
+    end
+  end
+
+  def prompt_to_continue
+    puts "Press ENTER to continue"
+    gets.chomp
+  end
+
+  def reset_scores
+    human.score = 0
+    computer.score = 0
   end
 end
 
