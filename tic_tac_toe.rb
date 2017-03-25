@@ -126,16 +126,7 @@ class TTTGame
 
     loop do
       loop do
-        display_board
-        loop do
-          current_player_moves
-          break if board.someone_won? || board.full?
-          clear_screen_and_display_board if human_turn?
-        end
-
-        display_result
-        update_scores
-        display_scores
+        play_round
         break if someone_won_game?
         prompt_to_continue
         reset
@@ -151,6 +142,19 @@ class TTTGame
   end
 
   private
+
+  def play_round
+    display_board
+    loop do
+      current_player_moves
+      break if board.someone_won? || board.full?
+      clear_screen_and_display_board if human_turn?
+    end
+
+    display_result
+    update_scores
+    display_scores
+  end
 
   def display_welcome_message
     puts "Welcome to Tic Tac Toe!"
@@ -268,7 +272,8 @@ class TTTGame
   end
 
   def display_scores
-    puts "You have #{human.score_string}. The computer has #{computer.score_string}."
+    puts "You have #{human.score_string}. " \
+      "The computer has #{computer.score_string}."
   end
 
   def someone_won_game?
