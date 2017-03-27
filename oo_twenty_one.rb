@@ -139,24 +139,31 @@ class Game
   attr_reader :dealer, :player, :deck
 
   def initialize
-    @dealer = Dealer.new
-    @player = Player.new
-    @deck = Deck.new
+    reset
   end
 
   def start
-    deal_cards
-    show_initial_cards
-    player_turn
-    dealer_turn unless player.busted?
-    show_result
+    loop do
+      system 'clear'
+      deal_cards
+      show_initial_cards
+      player_turn
+      player.show_busted_or_stayed
+      dealer_turn unless player.busted?
+      show_result
+      break unless play_again?
+      reset
+    end
+    puts "Thanks for playing Twenty-One! Arrivederci!"
   end
 
   private
 
   def deal_cards
-    2.times { deck.deal_card(dealer) }
-    2.times { deck.deal_card(player) }
+    2.times do
+      deck.deal_card(dealer)
+      deck.deal_card(player)
+    end
   end
 
   def show_initial_cards
@@ -165,17 +172,20 @@ class Game
   end
 
   def player_turn
+    puts "#{player}'s turn..."
     loop do
       break unless player.hit?
       deck.deal_card(player)
+      puts "#{player} hits!"
       player.show_cards
       break if player.busted?
     end
-    player.show_busted_or_stayed
   end
 
   def dealer_turn
+    puts "#{dealer}'s turn..."
     while dealer.total < 17
+      puts "#{dealer} hits!"
       deck.deal_card(dealer)
     end
     dealer.show_busted_or_stayed
@@ -210,6 +220,23 @@ class Game
     elsif dealer.busted?
       player
     end
+  end
+
+  def play_again?
+    answer = nil
+    loop do
+      puts "Would you like to play again? (y/n)"
+      answer = gets.chomp.downcase
+      break if %w[y n].include?(answer)
+      puts "Sorry, you must choose 'y' or 'n'."
+    end
+    answer == 'y'
+  end
+
+  def reset
+    @dealer = Dealer.new
+    @player = Player.new
+    @deck = Deck.new
   end
 end
 
